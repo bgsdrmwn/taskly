@@ -1,20 +1,50 @@
-import express from 'express'
+import express from 'express';
 import "dotenv/config";
-import {db} from "./config/db.js"
+import { db } from "./config/db.js";
+import userRouter from './routes/user.routes.js'; 
+import authRouter from './routes/auth.route.js';
+// import helmet from 'helmet';
+import cors from 'cors';
 
 const app = express();
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 4000;
+
+// app.use(express.json());
+// app.use(cookieParser());
+// app.use(helmet());
+app.use(cors());
+
+app.use(
+    cors({
+        origin: process.env.CLIENT_URL,
+        credentials: true,
+    })
+);
+
+app.use(express.json());
+
+app.use((req, res, next) => {
+    console.log(`[${req.method}] ${req.url}`);
+    next();
+});
 
 app.get("/", (req, res) => {
     res.status(200).json({
-    message: "hello world",
+        message: "hello world"
     });
 });
 
+app.use('/api/v1/auth', authRouter);
+
+app.use('/api/v1/users', (req, res, next) => {
+    console.log('[DEBUG] Request masuk ke /api/v1/users');
+    next();
+}, userRouter);
+
 app.use("*", (req, res) => {
     res.status(404).json({
-    message: "not found",
-    }); 
+        message: "not found"
+    });
 });
 
 app.listen(PORT, () => {
